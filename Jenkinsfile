@@ -43,19 +43,19 @@ pipeline {
             }
         }
 
-        stage('Terraform Plan') {
-            steps {
-                script {
-                    if (isUnix()) {
-                        dir(env.WORKING_DIR) { sh 'terraform plan -out=tfplan' }
-                        dir(env.WORKING_DIR) { sh 'terraform show -no-color tfplan > tfplan.txt' }
-                    } else {
-                        dir(env.WORKING_DIR) { bat 'terraform plan -out=tfplan' }
-                        dir(env.WORKING_DIR) { bat 'terraform show -no-color tfplan > tfplan.txt' }
-                    }
-                }
-            }
-        }
+        // stage('Terraform Plan') {
+        //     steps {
+        //         script {
+        //             if (isUnix()) {
+        //                 dir(env.WORKING_DIR) { sh 'terraform plan -out=tfplan' }
+        //                 dir(env.WORKING_DIR) { sh 'terraform show -no-color tfplan > tfplan.txt' }
+        //             } else {
+        //                 dir(env.WORKING_DIR) { bat 'terraform plan -out=tfplan' }
+        //                 dir(env.WORKING_DIR) { bat 'terraform show -no-color tfplan > tfplan.txt' }
+        //             }
+        //         }
+        //     }
+        // }
 
         stage('Manual Approval') {
             steps {
