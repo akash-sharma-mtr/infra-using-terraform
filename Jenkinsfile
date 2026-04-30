@@ -47,38 +47,38 @@ pipeline {
             steps {
                 script {
                     if (isUnix()) {
-                        dir(env.WORKING_DIR) { sh 'terraform plan -out=tfplan' }
-                        dir(env.WORKING_DIR) { sh 'terraform show -no-color tfplan > tfplan.txt' }
+                        dir(env.WORKING_DIR) { sh 'terraform plan' }
+                        // dir(env.WORKING_DIR) { sh 'terraform show -no-color tfplan > tfplan.txt' }
                     } else {
-                        dir(env.WORKING_DIR) { bat 'terraform plan -out=tfplan' }
-                        dir(env.WORKING_DIR) { bat 'terraform show -no-color tfplan > tfplan.txt' }
+                        dir(env.WORKING_DIR) { bat 'terraform plan' }
+                        // dir(env.WORKING_DIR) { bat 'terraform show -no-color tfplan > tfplan.txt' }
                     }
                 }
             }
         }
 
-        stage('Manual Approval') {
-            steps {
-                input message: 'Approve Terraform apply to the target environment?', ok: 'Apply'
-            }
-        }
+        // stage('Manual Approval') {
+        //     steps {
+        //         input message: 'Approve Terraform apply to the target environment?', ok: 'Apply'
+        //     }
+        // }
 
         stage('Terraform Apply') {
             steps {
                 script {
                     if (isUnix()) {
-                        dir(env.WORKING_DIR) { sh 'terraform apply -auto-approve tfplan' }
+                        dir(env.WORKING_DIR) { sh 'terraform apply -auto-approve' }
                     } else {
-                        dir(env.WORKING_DIR) { bat 'terraform apply -auto-approve tfplan' }
+                        dir(env.WORKING_DIR) { bat 'terraform apply -auto-approve' }
                     }
                 }
             }
         }
     }
 
-    post {
-        always {
-            archiveArtifacts artifacts: 'infra/tfplan.txt, infra/*.sarif', allowEmptyArchive: true
-        }
-    }
+    // post {
+    //     always {
+    //         archiveArtifacts artifacts: 'infra/tfplan.txt, infra/*.sarif', allowEmptyArchive: true
+    //     }
+    // }
 }
