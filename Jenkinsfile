@@ -29,15 +29,53 @@ pipeline {
             }
         }
 
+        stage('Terraform Lint') {
+            steps {
+                script {
+                    if (isUnix()) {
+                        dir(env.WORKING_DIR) { sh 'terraform fmt -check -recursive' }
+                    } else {
+                        dir(env.WORKING_DIR) { bat 'terraform fmt -check -recursive' }
+                    }
+                }
+            }
+        }
+
         stage('Terraform Validate') {
             steps {
                 script {
                     if (isUnix()) {
-                        dir(env.WORKING_DIR) { sh 'terraform fmt -check -recursive || true' }
                         dir(env.WORKING_DIR) { sh 'terraform validate' }
                     } else {
-                        dir(env.WORKING_DIR) { bat 'terraform fmt -check -recursive || exit 0' }
                         dir(env.WORKING_DIR) { bat 'terraform validate' }
+                    }
+                }
+            }
+        }
+
+        stage('Security Scan - tfsec') {
+            steps {
+                script {
+                    if (isUnix()) {
+                        sh '''if ! command -v tfsec >/dev/null 2>&1; then echo "tfsec not installed"; exit 1; fi'''
+                        dir(env.WORKING_DIR) { sh 'tfsec --no-color --format sarif --out tfsec.sarif . || true' }
+                    } else {
+                        bat 'where tfsec >NUL 2>&1 || (echo tfsec not installed & exit /b 1)'
+                        dir(env.WORKING_DIR) { bat 'tfsec --no-color --format sarif --out tfsec.sarif . || exit /b 0' }
+                    }
+                }
+            }
+        }
+
+        stage('Security Scan - Checkov') {
+            steps {
+                script {
+                    if (isUnix()) {
+                        sh '''if ! command -v checkov >/dev/null 2>&1; then echo "checkov not installed"; exit 1; fi'''
+                        dir(env.WORKING_DIR) { sh 'checkov -d . -o cli -o sarif --output-file-path console,checkov.sarif || true' }
+                    } else {
+                        bat 'where checkov >NUL 2>&1 || (echo checkov not installed & exit /b 1)'
+                        dir(env.WORKING_DIR) { bat 'checkov -d . -o cli -o sarif --output-file-path console,checkov.sarif || exit /b 0' }
                     }
                 }
             }
@@ -75,10 +113,4 @@ pipeline {
             }
         }
     }
-
-    // post {
-    //     always {
-    //         archiveArtifacts artifacts: 'infra/tfplan.txt, infra/*.sarif', allowEmptyArchive: true
-    //     }
-    // }
 }
